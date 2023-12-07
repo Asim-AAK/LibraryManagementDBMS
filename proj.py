@@ -43,6 +43,12 @@ class student_decision(QtWidgets.QMainWindow):
         uic.loadUi('2.student_decision.ui', self) 
 
         self.confirm_pushButton.clicked.connect(self.confirm)
+        self.logout_pushButton.clicked.connect(self.revert)
+
+    def revert(self):
+        self.hide()
+        self.view_window = UI()
+        self.view_window.show()
 
     def confirm(self):
         if self.book_radioButton.isChecked():
