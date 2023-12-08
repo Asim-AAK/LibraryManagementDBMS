@@ -28,6 +28,9 @@
     </property>
    </widget>
    <widget class="QLineEdit" name="booktitle_lineEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -51,6 +54,9 @@
     </property>
    </widget>
    <widget class="QLineEdit" name="bookauthor_lineEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -113,6 +119,9 @@
     </property>
    </widget>
    <widget class="QLineEdit" name="genre_lineEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -123,6 +132,9 @@
     </property>
    </widget>
    <widget class="QLineEdit" name="bookid_lineEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -159,6 +171,9 @@
     </property>
    </widget>
    <widget class="QDateTimeEdit" name="issueddate_dateTimeEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -169,6 +184,9 @@
     </property>
    </widget>
    <widget class="QDateTimeEdit" name="returndate_dateTimeEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -199,7 +217,7 @@
      <x>0</x>
      <y>0</y>
      <width>695</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

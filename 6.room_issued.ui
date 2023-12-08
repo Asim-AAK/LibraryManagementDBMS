@@ -28,6 +28,9 @@
     </property>
    </widget>
    <widget class="QLineEdit" name="discussionroomnumber_lineEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -51,6 +54,9 @@
     </property>
    </widget>
    <widget class="QLineEdit" name="discussionroomid_lineEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -87,6 +93,9 @@
     </property>
    </widget>
    <widget class="QDateTimeEdit" name="reservationdate_dateTimeEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -97,6 +106,9 @@
     </property>
    </widget>
    <widget class="QDateTimeEdit" name="starttime_dateTimeEdit">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -107,6 +119,9 @@
     </property>
    </widget>
    <widget class="QDateTimeEdit" name="endtime_dateTimeEdits">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -174,7 +189,7 @@
      <x>0</x>
      <y>0</y>
      <width>695</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
