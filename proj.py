@@ -7,6 +7,7 @@ import datetime
 
 #___________________________________________________database connection__________________________________________________
 
+# Replace these with your own database connection details
 server = 'LAPTOP-KRFDT15R\DEMENTED'
 database = 'LibraryDB'  # Name of your LibraryDB database
 use_windows_authentication = True  # Set to True to use Windows Authentication
@@ -420,7 +421,7 @@ class room_issue(QtWidgets.QMainWindow):
 
                     # Insert the issued room into the room_issued table
                     reserved_date = QDate.currentDate().toString('yyyy-MM-dd')
-                    start_date = reserved_date  # You may want to adjust this based on your business logic
+                    start_date = reserved_date  # adjust if needed
                     end_date = QDate.fromString(start_date, 'yyyy-MM-dd').addDays(1).toString('yyyy-MM-dd')
                     cursor.execute('INSERT INTO room_issued (Student_email, roomID, reserved_date, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
                                    (current_user_email, room_id, reserved_date, start_date, end_date))
@@ -444,7 +445,6 @@ class room_issued(QtWidgets.QMainWindow):
         self.discussionroomnumber_lineEdit.setText(room_number)
         self.discussionroomid_lineEdit.setText(room_id)
         
-        # You need to initialize these variables with appropriate values
         reservation_date = QDate.currentDate()
         start_time = QTime.currentTime()
         end_time = QTime.currentTime()
@@ -501,7 +501,7 @@ class contact_us(QtWidgets.QMainWindow):
 
     def revert(self):
         self.hide()
-        self.view_window = Login()  # Assuming UI is your main window class
+        self.view_window = Login() 
         self.view_window.show()
 
 class AdminPanel(QtWidgets.QMainWindow):
@@ -586,7 +586,7 @@ current_user_email = None
 class Rooms_issued_admin(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('Rooms_issued_admin.ui', self)  # Assuming you have a UI file named RoomsIssuedAdmin.ui
+        uic.loadUi('Rooms_issued_admin.ui', self)
 
         self.close_pushButton.clicked.connect(self.revert)
         
@@ -599,7 +599,7 @@ class Rooms_issued_admin(QtWidgets.QMainWindow):
 
     def revert(self):
         self.hide()
-        self.view_window = AdminPanel()  # Assuming you have an AdminPanel class
+        self.view_window = AdminPanel()
         self.view_window.show()
 
     def populate_table(self):
