@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>StudentDecision</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QGroupBox" name="decision_groupBox">
@@ -68,9 +68,9 @@
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>60</y>
-       <width>171</width>
+       <x>80</x>
+       <y>70</y>
+       <width>191</width>
        <height>101</height>
       </rect>
      </property>
@@ -115,38 +115,28 @@
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>460</y>
+      <y>420</y>
       <width>611</width>
-      <height>121</height>
+      <height>271</height>
      </rect>
     </property>
     <property name="title">
-     <string>Featured Books of the week!</string>
+     <string>Featured Book of the week!</string>
     </property>
-    <widget class="QLabel" name="studentemail_label">
+    <widget class="QLabel" name="label_3">
      <property name="geometry">
       <rect>
-       <x>70</x>
-       <y>50</y>
-       <width>101</width>
-       <height>21</height>
+       <x>240</x>
+       <y>40</y>
+       <width>281</width>
+       <height>191</height>
       </rect>
      </property>
-     <property name="text">
-      <string>1984 </string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="studentemail_label_2">
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>50</y>
-       <width>141</width>
-       <height>21</height>
-      </rect>
+     <property name="styleSheet">
+      <string notr="true">image: url(:/newPrefix1/Screenshot 2023-10-25 221325.png);</string>
      </property>
      <property name="text">
-      <string>The Great Gatsby!</string>
+      <string/>
      </property>
     </widget>
    </widget>

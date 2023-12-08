@@ -1,4 +1,4 @@
-from PyQt6 import QtWidgets, uic
+from PyQt6 import QtWidgets, uic, QtGui
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QHeaderView, QMessageBox
 import sys
 from PyQt6.QtCore import QDate, QDateTime, QTime
@@ -30,6 +30,13 @@ class Login(QtWidgets.QMainWindow):
         super(Login, self).__init__() 
         # Load the .ui file
         uic.loadUi('1.welcome_screen.ui', self)
+
+        # Load images from the resource file
+        pixmap_label = QtGui.QPixmap('pic_of_habib.jpeg')
+        pixmap_label = pixmap_label.scaled(100, 100)
+
+        # Set images on labels
+        self.label.setPixmap(pixmap_label)
 
         self.close_pushButton.clicked.connect(self.close)  # Close the application
         self.confirm_pushButton.clicked.connect(self.confirm)  # Login button
@@ -125,7 +132,18 @@ class student_decision(QtWidgets.QMainWindow):
         # Call the inherited classes __init__ method
         super().__init__() 
         # Load the .ui file
-        uic.loadUi('2.student_decision.ui', self) 
+        uic.loadUi('2.student_decision.ui', self)
+
+        # Load images from the resource file
+        pixmap_label = QtGui.QPixmap('pic_of_books.png')
+        pixmap_label_2 = QtGui.QPixmap('pic_of_room.png')
+        pixmap_label_3 = QtGui.QPixmap('pic_of_gatsby.png')
+        pixmap_label_3 = pixmap_label_3.scaled(140, 200)
+
+        # Set images on labels
+        self.label.setPixmap(pixmap_label)
+        self.label_2.setPixmap(pixmap_label_2)
+        self.label_3.setPixmap(pixmap_label_3)
 
         self.confirm_pushButton.clicked.connect(self.confirm) # login button
         self.logout_pushButton.clicked.connect(self.logout) # logout button
