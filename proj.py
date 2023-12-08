@@ -512,10 +512,6 @@ class AdminPanel(QtWidgets.QMainWindow):
             self.hide()
             self.view_window = User_Access_Admin()
             self.view_window.show()
-        elif self.finesAndHolds_radioButton.isChecked():
-            self.hide()
-            self.view_window = Fine_Hold_Admin()
-            self.view_window.show()
         else:
             QtWidgets.QMessageBox.information(self, 'Information', 'Please click an option')
 
