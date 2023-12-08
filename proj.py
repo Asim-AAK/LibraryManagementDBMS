@@ -281,6 +281,8 @@ class book_issued(QtWidgets.QMainWindow):
         super().__init__()
         uic.loadUi('4.book_issued.ui', self)
 
+        self.okay_pushButton.clicked.connect(self.revert)
+
         # Set the details in the UI
         self.booktitle_lineEdit.setText(book_title)
         self.bookauthor_lineEdit.setText(book_author)
