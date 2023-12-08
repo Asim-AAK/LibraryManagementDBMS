@@ -29,14 +29,14 @@
     <widget class="QGroupBox" name="accountstatus_groupBox">
      <property name="geometry">
       <rect>
-       <x>350</x>
-       <y>90</y>
+       <x>370</x>
+       <y>70</y>
        <width>321</width>
        <height>91</height>
       </rect>
      </property>
      <property name="title">
-      <string>Account status</string>
+      <string>Current account status:</string>
      </property>
      <widget class="QRadioButton" name="onhold_radioButton">
       <property name="enabled">
@@ -44,7 +44,7 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>50</x>
         <y>30</y>
         <width>91</width>
         <height>21</height>
@@ -60,7 +60,7 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>130</x>
+        <x>160</x>
         <y>30</y>
         <width>101</width>
         <height>21</height>
@@ -75,61 +75,48 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>50</y>
+       <y>20</y>
        <width>311</width>
-       <height>151</height>
+       <height>181</height>
       </rect>
      </property>
      <property name="title">
-      <string>Student Details</string>
+      <string>Check Hold Status</string>
      </property>
-     <widget class="QLabel" name="studentname_label">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>81</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Student Name</string>
-      </property>
-     </widget>
      <widget class="QLabel" name="studentemail_label">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>100</y>
-        <width>81</width>
+        <x>20</x>
+        <y>40</y>
+        <width>191</width>
         <height>21</height>
        </rect>
       </property>
       <property name="text">
-       <string>Student Email</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="studentname_lineEdit">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>50</y>
-        <width>131</width>
-        <height>20</height>
-       </rect>
+       <string>Please enter your email below:</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="studentemail_lineEdit">
       <property name="geometry">
        <rect>
-        <x>110</x>
-        <y>100</y>
-        <width>131</width>
+        <x>50</x>
+        <y>80</y>
+        <width>211</width>
         <height>20</height>
        </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_2">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>140</y>
+        <width>81</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Search</string>
       </property>
      </widget>
     </widget>
@@ -177,14 +164,27 @@
    <widget class="QLabel" name="studentname_label_2">
     <property name="geometry">
      <rect>
-      <x>220</x>
+      <x>70</x>
       <y>440</y>
-      <width>501</width>
+      <width>521</width>
       <height>21</height>
      </rect>
     </property>
     <property name="text">
      <string>If you would like to contact us regarding something, email us at library_department@habib.com</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>440</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Go back to Main window</string>
     </property>
    </widget>
   </widget>
