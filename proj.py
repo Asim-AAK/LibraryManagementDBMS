@@ -31,83 +31,93 @@ class Login(QtWidgets.QMainWindow):
         # Load the .ui file
         uic.loadUi('1.welcome_screen.ui', self)
 
-        self.close_pushButton.clicked.connect(self.close) # close the application
-        self.confirm_pushButton.clicked.connect(self.confirm) # login button
-        self.contactus_pushButton.clicked.connect(self.contactus) # contact us button
-        
+        self.close_pushButton.clicked.connect(self.close)  # Close the application
+        self.confirm_pushButton.clicked.connect(self.confirm)  # Login button
+        self.contactus_pushButton.clicked.connect(self.contactus)  # Contact us button
 
-    
-    # main page login and contact us functionality
+    # Main page login and contact us functionality
     def confirm(self):
         # Get the entered username and password
         email = self.email_lineEdit.text()
         password = self.password_lineEdit.text()
 
         # Validate the credentials
-        is_valid = self.check_credentials_in_database(email, password)
+        is_valid, user_type = self.check_credentials_in_database(email, password)
 
         if is_valid:
-            QtWidgets.QMessageBox.information(self, 'Login Successful', 'You have logged in successfully.')
-            # You can proceed to the next window after close the login window here
-            if (email=='admin@example.com'):
+            if user_type == 'Admin':
                 self.gotoAdminPanel()
-            else:
+            elif user_type == 'Student':
                 global current_user_email
                 current_user_email = email
-                self.gotoStudentDecision()
-          
+                if self.check_student_access(email):
+                    self.gotoStudentDecision()
+                else:
+                    QtWidgets.QMessageBox.warning(
+                        self, 'Account Hold', 'You do not have access due to a hold on your account.'
+                    )
         else:
             QtWidgets.QMessageBox.warning(self, 'Login Failed', 'The username or password is incorrect.')
 
         self.contactus_pushButton.clicked.connect(self.contactus)
 
-    # check the credentials in the database
+    # Check the credentials in the database
     def check_credentials_in_database(self, email, password):
-        """ Check if the provided credentials match an entry in the  table. """
+        """ Check if the provided credentials match an entry in the table. """
         try:
             # Establish a database connection
             connection = pyodbc.connect(connection_string)
             cursor = connection.cursor()
-            
+
             # Execute the query
-            cursor.execute('''SELECT 'Admin' AS user_type, email
-                            FROM Admin
-                            WHERE email = ? AND password = ?
-                            UNION ALL
-                            SELECT 'Student' AS user_type, email
-                            FROM Students
-                            WHERE email = ? AND password = ?
-                            ''', (email, password, email, password))
-            
+            cursor.execute(
+                '''SELECT 'Admin' AS user_type, email
+                   FROM Admin
+                   WHERE email = ? AND password = ?
+                   UNION ALL
+                   SELECT 'Student' AS user_type, email
+                   FROM Students
+                   WHERE email = ? AND password = ?''', (email, password, email, password)
+            )
+
             result = cursor.fetchone()
-            
+
             # Close the database connection
             connection.close()
-            
-            # Return True if credentials are valid, else False
-            return bool(result)
-        
+
+            # Return (True, user_type) if credentials are valid, else (False, None)
+            return bool(result), result[0] if result else None
+
+        except pyodbc.Error as e:
+            print(f"An error occurred: {e}")
+            return False, None
+
+    def check_student_access(self, email):
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute('SELECT access FROM Students WHERE email = ?', (email,))
+                    result = cursor.fetchone()
+                    return result[0] == 1 if result else False
         except pyodbc.Error as e:
             print(f"An error occurred: {e}")
             return False
 
-    def gotoAdminPanel(self): # admin panel functionality - takes you to the admin panel page
+    def gotoAdminPanel(self):  # Admin panel functionality - takes you to the admin panel page
         self.window = AdminPanel()  # Pass the prompt to the main window
         self.window.show()
         self.close()
-    
-    
-    def gotoStudentDecision(self): # student decision functionality - takes you to the student decision page
+
+    def gotoStudentDecision(self):  # Student decision functionality - takes you to the student decision page
         self.window = student_decision()  # Pass the prompt to the main window
         self.window.show()
         self.close()
-    
 
-    def contactus(self): # contact us functionality - takes you to the contact us page
+    def contactus(self):  # Contact us functionality - takes you to the contact us page
         self.hide()
         self.view_window = contact_us()
         self.view_window.show()
-    
+
         
 #---student decision page------
 class student_decision(QtWidgets.QMainWindow):
@@ -143,7 +153,7 @@ class book_issue(QtWidgets.QMainWindow):
         super().__init__() 
         uic.loadUi('3.book_issue.ui', self)  # Ensure this UI file has a QTableWidget named 'booksTableWidget'
         
-        self.close_pushButton.clicked.connect(self.close)
+        self.close_pushButton.clicked.connect(self.revert)
         self.issue_pushButton.clicked.connect(self.issue)
         self.search_pushButton.clicked.connect(self.search)
 
@@ -258,6 +268,11 @@ class book_issue(QtWidgets.QMainWindow):
         self.book_issued_window = book_issued(book_title, book_author, book_id, book_genre, issue_date, return_date)
         self.book_issued_window.show()
         self.close()
+
+    def revert(self):
+        self.hide()
+        self.view_window = student_decision()
+        self.view_window.show()
 
             
 #---book issued page displayed to student after issuing a book------
@@ -448,33 +463,11 @@ class contact_us(QtWidgets.QMainWindow):
 
         if is_on_hold:
             self.onhold_radioButton.setChecked(True)
-            self.notonhold_radioButton.setChecked(False)
+            #self.notonhold_radioButton.setChecked(False)
             QtWidgets.QMessageBox.information(self, 'Account on Hold', 'The student\'s account is on hold.')
         else:
-            self.onhold_radioButton.setChecked(False)
+            #self.onhold_radioButton.setChecked(False)
             self.notonhold_radioButton.setChecked(True)
-
-        # Construct the SQL query to fetch issued books for the student
-        query = """
-        SELECT b.BookID, b.Title, bi.issue_date, bi.return_date, b.fine_amount_per_day
-        FROM book_issued bi
-        JOIN Books b ON bi.BookID = b.bookid
-        WHERE bi.Student_email = ?
-        """
-
-        # Execute the query and populate the table
-        try:
-            with pyodbc.connect(connection_string) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(query, (student_email,))
-                    search_results = cursor.fetchall()
-
-                    if not search_results:
-                        QtWidgets.QMessageBox.information(self, 'No Results', 'No books issued to the student.')
-                    else:
-                        self.populate_table(search_results)  # Pass the results to the table population method
-        except pyodbc.Error as e:
-            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
 
     def check_student_on_hold(self, student_email):
         try:
@@ -486,16 +479,9 @@ class contact_us(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
             return False
 
-    def populate_table(self, data):
-        self.booksTableWidget.setRowCount(0)  # Clear the table first
-        for row_number, row_data in enumerate(data):
-            self.booksTableWidget.insertRow(row_number)
-            for column_number, cell_data in enumerate(row_data):
-                self.booksTableWidget.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(cell_data)))
-
     def revert(self):
         self.hide()
-        self.view_window = UI()  # Assuming UI is your main window class
+        self.view_window = Login()  # Assuming UI is your main window class
         self.view_window.show()
 
 class AdminPanel(QtWidgets.QMainWindow):
@@ -532,23 +518,6 @@ class AdminPanel(QtWidgets.QMainWindow):
             self.view_window.show()
         else:
             QtWidgets.QMessageBox.information(self, 'Information', 'Please click an option')
-            
-
-class Fine_Hold_Admin(QtWidgets.QMainWindow):
-    def __init__(self):
-        # Call the inherited classes __init__ method
-        super().__init__() 
-        # Load the .ui file
-        uic.loadUi('Fine_Hold_Admin.ui', self)
-
-        self.close_pushButton_2.clicked.connect(self.revert)
-        self.confirm_pushButton.clicked.connect(self.revert)
-        
-
-    def revert(self):
-        self.hide()
-        self.view_window = AdminPanel()
-        self.view_window.show()
 
 #---issued books page------
 class Issued_books_admin(QtWidgets.QMainWindow):
@@ -653,87 +622,37 @@ class User_Access_Admin(QtWidgets.QMainWindow):
         self.pushButton.clicked.connect(self.return_to_admin_panel)
 
     def confirm(self):
-        if self.no_radioButton.isChecked() or self.yes_radioButton.isChecked():
-            if self.no_radioButton.isChecked():
-                # If 'No' radio button is checked, remove hold and update access to 1
-                selected_row = self.hold_TableWidget.currentRow()
-                if selected_row < 0:  # No selection
-                    QtWidgets.QMessageBox.warning(self, 'Selection Required', 'Please select a row from the table.')
-                    return
-
-                # Extract student email from the selected row
+        if self.no_radioButton.isChecked():
+            selected_row = self.hold_TableWidget.currentRow()
+            if selected_row >= 0:
+                # Extract Student_email from the selected row
                 student_email_item = self.hold_TableWidget.item(selected_row, 1)
-                if not student_email_item:
-                    QtWidgets.QMessageBox.warning(self, 'Error', 'Incomplete row details.')
-                    return
 
-                student_email = student_email_item.text()
+                if student_email_item:
+                    student_email = student_email_item.text()
 
-                # Remove hold on student
-                self.remove_hold(student_email)
-                # Update access to 1 in the Student table
-                self.update_access(student_email, 1)
-            elif self.yes_radioButton.isChecked():
-                # If 'Yes' radio button is checked, place hold and update access to 0
-                selected_row = self.hold_TableWidget.currentRow()
-                if selected_row < 0:  # No selection
-                    QtWidgets.QMessageBox.warning(self, 'Selection Required', 'Please select a row from the table.')
-                    return
+                    try:
+                        with pyodbc.connect(connection_string) as conn:
+                            with conn.cursor() as cursor:
+                                # Remove the Hold entry from the Hold table
+                                cursor.execute('DELETE FROM Hold WHERE Student_email = ?', (student_email,))
+                                conn.commit()
 
-                # Extract student email from the selected row
-                student_email_item = self.hold_TableWidget.item(selected_row, 1)
-                if not student_email_item:
-                    QtWidgets.QMessageBox.warning(self, 'Error', 'Incomplete row details.')
-                    return
+                                # Update access to 1 in the Student table
+                                cursor.execute('UPDATE Students SET access = 1 WHERE email = ?', (student_email,))
+                                conn.commit()
 
-                student_email = student_email_item.text()
-
-                # Place hold on student
-                self.place_hold(student_email)
-                # Update access to 0 in the Student table
-                self.update_access(student_email, 0)
+                                QtWidgets.QMessageBox.information(self, 'Hold Removed', 'Hold has been removed, and access is now granted.')
+                                # Refresh the table after the changes
+                                self.populate_table()
+                    except pyodbc.Error as e:
+                        QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+                else:
+                    QtWidgets.QMessageBox.information(self, 'Information', 'Please select a student row.')
             else:
-                QtWidgets.QMessageBox.information(self, 'Information', 'Please click an option from yes or no')
+                QtWidgets.QMessageBox.information(self, 'Information', 'Please select a student row.')
         else:
-            QtWidgets.QMessageBox.information(self, 'Information', 'Please click an option from student or staff')
-
-    def remove_hold(self, student_email):
-        # Perform actions to remove hold on student (update Hold table)
-        try:
-            with pyodbc.connect(connection_string) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute('DELETE FROM Hold WHERE Student_email = ?', (student_email,))
-                    conn.commit()  # Commit the transaction
-        except pyodbc.Error as e:
-            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
-
-    def place_hold(self, student_email):
-        # Perform actions to place hold on student (insert into Hold table)
-        try:
-            with pyodbc.connect(connection_string) as conn:
-                with conn.cursor() as cursor:
-                    hold_date = QDate.currentDate().toString('yyyy-MM-dd')
-                    cursor.execute('INSERT INTO Hold (Student_email, Admin_email, holdDate) VALUES (?, ?, ?)',
-                                   (student_email, 'admin@example.com', hold_date))
-                    conn.commit()  # Commit the transaction
-        except pyodbc.Error as e:
-            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
-
-    def update_access(self, student_email, access_value):
-        # Perform actions to update access value in the Student table
-        try:
-            with pyodbc.connect(connection_string) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute('UPDATE Students SET access = ? WHERE email = ?', (access_value, student_email))
-                    conn.commit()  # Commit the transaction
-        except pyodbc.Error as e:
-            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
-
-    def return_to_admin_panel(self):
-        # Return to the AdminPanel
-        self.hide()
-        self.view_window = AdminPanel()
-        self.view_window.show()
+            QtWidgets.QMessageBox.information(self, 'Information', 'Please click on the "No" option.')
 
     def populate_table(self):
         try:
@@ -749,6 +668,11 @@ class User_Access_Admin(QtWidgets.QMainWindow):
                             self.hold_TableWidget.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(cell_data)))
         except pyodbc.Error as e:
             QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+    def return_to_admin_panel(self):
+        # Return to the AdminPanel
+        self.hide()
+        self.view_window = AdminPanel()
+        self.view_window.show()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

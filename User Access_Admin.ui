@@ -36,26 +36,13 @@
       </rect>
      </property>
      <property name="text">
-      <string>Do you want to remove or put hold for this user?</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="yes_radioButton">
-     <property name="geometry">
-      <rect>
-       <x>70</x>
-       <y>60</y>
-       <width>131</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Place hold</string>
+      <string>Do you want to remove hold for this user?</string>
      </property>
     </widget>
     <widget class="QRadioButton" name="no_radioButton">
      <property name="geometry">
       <rect>
-       <x>260</x>
+       <x>10</x>
        <y>60</y>
        <width>131</width>
        <height>31</height>

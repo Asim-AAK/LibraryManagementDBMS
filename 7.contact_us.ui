@@ -121,51 +121,11 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QTableWidget" name="booksTableWidget">
-    <property name="geometry">
-     <rect>
-      <x>70</x>
-      <y>270</y>
-      <width>651</width>
-      <height>161</height>
-     </rect>
-    </property>
-    <column>
-     <property name="text">
-      <string>BookID</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Title</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Issue date</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Return date</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Fine per day</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Total Fine</string>
-     </property>
-    </column>
-   </widget>
    <widget class="QLabel" name="studentname_label_2">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>440</y>
+      <x>80</x>
+      <y>340</y>
       <width>521</width>
       <height>21</height>
      </rect>
@@ -177,8 +137,8 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>580</x>
-      <y>440</y>
+      <x>590</x>
+      <y>340</y>
       <width>141</width>
       <height>21</height>
      </rect>

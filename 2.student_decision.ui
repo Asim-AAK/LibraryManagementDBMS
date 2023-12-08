@@ -17,10 +17,10 @@
    <widget class="QGroupBox" name="decision_groupBox">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>0</y>
+      <x>170</x>
+      <y>80</y>
       <width>571</width>
-      <height>281</height>
+      <height>261</height>
      </rect>
     </property>
     <property name="title">
@@ -101,8 +101,8 @@
    <widget class="QPushButton" name="confirm_pushButton">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>290</y>
+      <x>670</x>
+      <y>350</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -115,36 +115,46 @@
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>350</y>
+      <y>440</y>
       <width>611</width>
-      <height>321</height>
+      <height>191</height>
      </rect>
     </property>
     <property name="title">
      <string>Featured Books of the week!</string>
     </property>
-    <widget class="QLabel" name="label_5">
+    <widget class="QLabel" name="studentemail_label">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>70</x>
        <y>50</y>
-       <width>551</width>
-       <height>241</height>
+       <width>141</width>
+       <height>21</height>
       </rect>
      </property>
-     <property name="styleSheet">
-      <string notr="true">image: url(:/newPrefix/Screenshot 2023-10-25 221632.png);</string>
+     <property name="text">
+      <string>1984 </string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="studentemail_label_2">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>50</y>
+       <width>141</width>
+       <height>21</height>
+      </rect>
      </property>
      <property name="text">
-      <string/>
+      <string>The Great Gatsby!</string>
      </property>
     </widget>
    </widget>
    <widget class="QPushButton" name="logout_pushButton">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>290</y>
+      <x>520</x>
+      <y>350</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -160,7 +170,7 @@
      <x>0</x>
      <y>0</y>
      <width>917</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
