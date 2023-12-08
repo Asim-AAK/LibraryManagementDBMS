@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTableWidget" name="booksTableWidget">
+   <widget class="QTableWidget" name="roomsTableWidget">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -102,7 +102,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QPushButton" name="search_pushButton">
+    <widget class="QPushButton" name="search_pushButton_2">
      <property name="geometry">
       <rect>
        <x>570</x>
@@ -175,7 +175,7 @@
      <x>0</x>
      <y>0</y>
      <width>766</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
