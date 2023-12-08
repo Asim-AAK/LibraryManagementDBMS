@@ -1,7 +1,0 @@
-<RCC>
-  <qresource prefix="newPrefix">
-    <file>Screenshot 2023-10-25 221632.png</file>
-    <file>Screenshot 2023-10-25 221325.png</file>
-    <file>Screenshot 2023-10-25 221126.png</file>
-  </qresource>
-</RCC>
