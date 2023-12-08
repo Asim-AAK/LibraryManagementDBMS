@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidge
 import sys
 from PyQt6.QtCore import QDate, QDateTime, QTime
 import pyodbc
+import datetime
 
 #___________________________________________________database connection__________________________________________________
 
@@ -20,17 +21,21 @@ else:
 
 #____________________________________________________main function______________________________________________________
 
+current_user_email = None # This variable will be used to store the email of the currently logged in user
+
 #---login page------
 class Login(QtWidgets.QMainWindow):
     def __init__(self):
         # Call the inherited classes __init__ method
         super(Login, self).__init__() 
         # Load the .ui file
-        uic.loadUi('1.welcome_screen.ui', self) 
+        uic.loadUi('1.welcome_screen.ui', self)
 
         self.close_pushButton.clicked.connect(self.close) # close the application
         self.confirm_pushButton.clicked.connect(self.confirm) # login button
         self.contactus_pushButton.clicked.connect(self.contactus) # contact us button
+        
+
     
     # main page login and contact us functionality
     def confirm(self):
@@ -47,6 +52,8 @@ class Login(QtWidgets.QMainWindow):
             if (email=='admin@example.com'):
                 self.gotoAdminPanel()
             else:
+                global current_user_email
+                current_user_email = email
                 self.gotoStudentDecision()
           
         else:
@@ -228,28 +235,30 @@ class book_issue(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, 'No Copies Available', 'There are no more available copies of the selected book.')
             return
 
-        # Update Copies_Available in the database
+        # Update Copies_Available and insert into book_issued in a transaction
         try:
-            with pyodbc.connect(connection_string) as conn:
+            with pyodbc.connect(connection_string, autocommit=False) as conn:
                 with conn.cursor() as cursor:
+                    # Update Copies_Available in the Books table
                     cursor.execute('UPDATE Books SET Copies_Available = Copies_Available - 1 WHERE bookid = ?', (book_id,))
-                    conn.commit()  # Commit the transaction
+
+                    # Insert into book_issued
+                    issue_date = datetime.datetime.now()
+                    cursor.execute('INSERT INTO book_issued (Student_email, BookID, Returned, ReturnDate, issue_date) VALUES (?, ?, 0, NULL, ?)',
+                                   (current_user_email, book_id, issue_date))
+
+                conn.commit()  # Commit the transaction
         except pyodbc.Error as e:
             QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
             return
 
         # Proceed with issuing the book
-        issue_date = QDate.currentDate()
-        return_date = issue_date.addDays(14)
+        return_date = QDate.currentDate().addDays(14)
 
         self.book_issued_window = book_issued(book_title, book_author, book_id, book_genre, issue_date, return_date)
         self.book_issued_window.show()
         self.close()
 
-    def revert(self):
-        self.hide()
-        self.view_window = student_decision()
-        self.view_window.show()
             
 #---book issued page displayed to student after issuing a book------
 class book_issued(QtWidgets.QMainWindow):
@@ -350,17 +359,15 @@ class room_issue(QtWidgets.QMainWindow):
         # Extract room details from the selected row
         room_id_item = self.roomsTableWidget.item(selected_row, 0)
         room_number_item = self.roomsTableWidget.item(selected_row, 1)
-        room_capacity_item = self.roomsTableWidget.item(selected_row, 2)
         room_availability_item = self.roomsTableWidget.item(selected_row, 3)
 
         # Check if all necessary items are present
-        if not all([room_id_item, room_number_item, room_capacity_item, room_availability_item]):
+        if not all([room_id_item, room_number_item, room_availability_item]):
             QtWidgets.QMessageBox.warning(self, 'Error', 'Incomplete room details.')
             return
 
         room_id = room_id_item.text()
         room_number = room_number_item.text()
-        room_capacity = room_capacity_item.text()
         room_availability = room_availability_item.text()
 
         # Check if the room is available
@@ -374,6 +381,14 @@ class room_issue(QtWidgets.QMainWindow):
             with pyodbc.connect(connection_string) as conn:
                 with conn.cursor() as cursor:
                     cursor.execute('UPDATE rooms SET availability = 0 WHERE roomid = ?', (room_id,))
+                    conn.commit()  # Commit the transaction
+
+                    # Insert the issued room into the room_issued table
+                    reserved_date = QDate.currentDate().toString('yyyy-MM-dd')
+                    start_date = reserved_date  # You may want to adjust this based on your business logic
+                    end_date = QDate.fromString(start_date, 'yyyy-MM-dd').addDays(1).toString('yyyy-MM-dd')
+                    cursor.execute('INSERT INTO room_issued (Student_email, roomID, reserved_date, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+                                   (current_user_email, room_id, reserved_date, start_date, end_date))
                     conn.commit()  # Commit the transaction
         except pyodbc.Error as e:
             QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
@@ -416,13 +431,72 @@ class contact_us(QtWidgets.QMainWindow):
         super().__init__() 
         # Load the .ui file
         uic.loadUi('7.contact_us.ui', self) 
-        #self.submit_pushButton.clicked.connect(self.revert)
+
+        self.pushButton_2.clicked.connect(self.search_books)
+        self.pushButton.clicked.connect(self.revert)
+
+    def search_books(self):
+        student_email = self.studentemail_lineEdit.text()
+
+        # Validate if the student email is entered
+        if not student_email:
+            QtWidgets.QMessageBox.warning(self, 'Invalid Input', 'Please enter a student email.')
+            return
+
+        # Check if the student account is on hold
+        is_on_hold = self.check_student_on_hold(student_email)
+
+        if is_on_hold:
+            self.onhold_radioButton.setChecked(True)
+            self.notonhold_radioButton.setChecked(False)
+            QtWidgets.QMessageBox.information(self, 'Account on Hold', 'The student\'s account is on hold.')
+        else:
+            self.onhold_radioButton.setChecked(False)
+            self.notonhold_radioButton.setChecked(True)
+
+        # Construct the SQL query to fetch issued books for the student
+        query = """
+        SELECT b.BookID, b.Title, bi.issue_date, bi.return_date, b.fine_amount_per_day
+        FROM book_issued bi
+        JOIN Books b ON bi.BookID = b.bookid
+        WHERE bi.Student_email = ?
+        """
+
+        # Execute the query and populate the table
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, (student_email,))
+                    search_results = cursor.fetchall()
+
+                    if not search_results:
+                        QtWidgets.QMessageBox.information(self, 'No Results', 'No books issued to the student.')
+                    else:
+                        self.populate_table(search_results)  # Pass the results to the table population method
+        except pyodbc.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+
+    def check_student_on_hold(self, student_email):
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute('SELECT 1 FROM Hold WHERE Student_email = ?', (student_email,))
+                    return bool(cursor.fetchone())
+        except pyodbc.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+            return False
+
+    def populate_table(self, data):
+        self.booksTableWidget.setRowCount(0)  # Clear the table first
+        for row_number, row_data in enumerate(data):
+            self.booksTableWidget.insertRow(row_number)
+            for column_number, cell_data in enumerate(row_data):
+                self.booksTableWidget.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(cell_data)))
 
     def revert(self):
         self.hide()
-        self.view_window = UI()
+        self.view_window = UI()  # Assuming UI is your main window class
         self.view_window.show()
-
 
 class AdminPanel(QtWidgets.QMainWindow):
     def __init__(self):
@@ -476,33 +550,90 @@ class Fine_Hold_Admin(QtWidgets.QMainWindow):
         self.view_window = AdminPanel()
         self.view_window.show()
 
+#---issued books page------
 class Issued_books_admin(QtWidgets.QMainWindow):
     def __init__(self):
-        # Call the inherited classes __init__ method
-        super().__init__() 
-        # Load the .ui file
-        uic.loadUi('Issued_books_admin.ui', self) 
+        super().__init__()
+        uic.loadUi('Issued_books_admin.ui', self)
 
         self.close_pushButton.clicked.connect(self.revert)
-    
+
+        # Populate the table with issued books during initialization
+        self.populate_issued_books()
+
     def revert(self):
         self.hide()
         self.view_window = AdminPanel()
         self.view_window.show()
+
+    def populate_issued_books(self):
+        # Fetch issued books data from the database
+        query = """
+        SELECT bi.Student_email, bi.BookID, b.Author, b.Title, bi.Returned, bi.ReturnDate, bi.issue_date
+        FROM book_issued bi
+        JOIN Books b ON bi.BookID = b.bookid
+        """
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query)
+                    issued_books_data = cursor.fetchall()
+
+                    # Check if there are issued books
+                    if issued_books_data:
+                        self.populate_table(issued_books_data)
+                    else:
+                        QtWidgets.QMessageBox.information(self, 'No Issued Books', 'No books have been issued.')
+        except pyodbc.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+
+    def populate_table(self, data):
+        self.booksTableWidget.setRowCount(0)  # Clear the table first
+        for row_number, row_data in enumerate(data):
+            self.booksTableWidget.insertRow(row_number)
+            for column_number, cell_data in enumerate(row_data):
+                self.booksTableWidget.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(cell_data)))
+
     
+# Global variable to store the current user's email
+current_user_email = None
+
 class Rooms_issued_admin(QtWidgets.QMainWindow):
     def __init__(self):
-        # Call the inherited classes __init__ method
-        super().__init__() 
-        # Load the .ui file
-        uic.loadUi('Rooms_issued_admin.ui', self) 
+        super().__init__()
+        uic.loadUi('Rooms_issued_admin.ui', self)  # Assuming you have a UI file named RoomsIssuedAdmin.ui
 
         self.close_pushButton.clicked.connect(self.revert)
-    
+        
+        # Initialize the QTableWidget
+        self.roomsTableWidget.setColumnCount(5)
+        self.roomsTableWidget.setHorizontalHeaderLabels(['Student Email', 'Room Number', 'Reserved Date', 'Start Date', 'End Date'])
+
+        # Populate the table when the window is initialized
+        self.populate_table()
+
     def revert(self):
         self.hide()
-        self.view_window = AdminPanel()
+        self.view_window = AdminPanel()  # Assuming you have an AdminPanel class
         self.view_window.show()
+
+    def populate_table(self):
+        # Fetch data from the database and populate the table
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute('SELECT Student_email, roomID, reserved_date, start_date, end_date FROM room_issued')
+                    data = cursor.fetchall()
+                    self.populate_table_data(data)
+        except pyodbc.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+
+    def populate_table_data(self, data):
+        self.roomsTableWidget.setRowCount(0)  # Clear the table first
+        for row_number, row_data in enumerate(data):
+            self.roomsTableWidget.insertRow(row_number)
+            for column_number, cell_data in enumerate(row_data):
+                self.roomsTableWidget.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(cell_data)))
 
 class User_Access_Admin(QtWidgets.QMainWindow):
     def __init__(self):
@@ -511,20 +642,114 @@ class User_Access_Admin(QtWidgets.QMainWindow):
         # Load the .ui file
         uic.loadUi('User Access_Admin.ui', self) 
 
+        # Initialize the QTableWidget
+        self.hold_TableWidget.setColumnCount(4)
+        self.hold_TableWidget.setHorizontalHeaderLabels(['Hold ID', 'Student Email', 'Admin Email', 'Hold Date'])
+
+        # Populate the table when the window is initialized
+        self.populate_table()
+
         self.confirm_pushButton.clicked.connect(self.confirm)
-    
+        self.pushButton.clicked.connect(self.return_to_admin_panel)
+
     def confirm(self):
-        if (self.student_radioButton.isChecked() or self.staff_radioButton.isChecked()):
-            if (self.no_radioButton.isChecked() or self.yes_radioButton.isChecked()):
-                #if yes, student gets retracted
-                self.hide()
-                self.view_window = AdminPanel()
-                self.view_window.show()
+        if self.no_radioButton.isChecked() or self.yes_radioButton.isChecked():
+            if self.no_radioButton.isChecked():
+                # If 'No' radio button is checked, remove hold and update access to 1
+                selected_row = self.hold_TableWidget.currentRow()
+                if selected_row < 0:  # No selection
+                    QtWidgets.QMessageBox.warning(self, 'Selection Required', 'Please select a row from the table.')
+                    return
+
+                # Extract student email from the selected row
+                student_email_item = self.hold_TableWidget.item(selected_row, 1)
+                if not student_email_item:
+                    QtWidgets.QMessageBox.warning(self, 'Error', 'Incomplete row details.')
+                    return
+
+                student_email = student_email_item.text()
+
+                # Remove hold on student
+                self.remove_hold(student_email)
+                # Update access to 1 in the Student table
+                self.update_access(student_email, 1)
+            elif self.yes_radioButton.isChecked():
+                # If 'Yes' radio button is checked, place hold and update access to 0
+                selected_row = self.hold_TableWidget.currentRow()
+                if selected_row < 0:  # No selection
+                    QtWidgets.QMessageBox.warning(self, 'Selection Required', 'Please select a row from the table.')
+                    return
+
+                # Extract student email from the selected row
+                student_email_item = self.hold_TableWidget.item(selected_row, 1)
+                if not student_email_item:
+                    QtWidgets.QMessageBox.warning(self, 'Error', 'Incomplete row details.')
+                    return
+
+                student_email = student_email_item.text()
+
+                # Place hold on student
+                self.place_hold(student_email)
+                # Update access to 0 in the Student table
+                self.update_access(student_email, 0)
             else:
                 QtWidgets.QMessageBox.information(self, 'Information', 'Please click an option from yes or no')
         else:
             QtWidgets.QMessageBox.information(self, 'Information', 'Please click an option from student or staff')
-        
+
+    def remove_hold(self, student_email):
+        # Perform actions to remove hold on student (update Hold table)
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute('DELETE FROM Hold WHERE Student_email = ?', (student_email,))
+                    conn.commit()  # Commit the transaction
+        except pyodbc.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+
+    def place_hold(self, student_email):
+        # Perform actions to place hold on student (insert into Hold table)
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    hold_date = QDate.currentDate().toString('yyyy-MM-dd')
+                    cursor.execute('INSERT INTO Hold (Student_email, Admin_email, holdDate) VALUES (?, ?, ?)',
+                                   (student_email, 'admin@example.com', hold_date))
+                    conn.commit()  # Commit the transaction
+        except pyodbc.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+
+    def update_access(self, student_email, access_value):
+        # Perform actions to update access value in the Student table
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute('UPDATE Students SET access = ? WHERE email = ?', (access_value, student_email))
+                    conn.commit()  # Commit the transaction
+        except pyodbc.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+
+    def return_to_admin_panel(self):
+        # Return to the AdminPanel
+        self.hide()
+        self.view_window = AdminPanel()
+        self.view_window.show()
+
+    def populate_table(self):
+        try:
+            with pyodbc.connect(connection_string) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute('SELECT hold_id, Student_email, Admin_email, holdDate FROM Hold')
+                    data = cursor.fetchall()
+
+                    self.hold_TableWidget.setRowCount(0)  # Clear the table first
+                    for row_number, row_data in enumerate(data):
+                        self.hold_TableWidget.insertRow(row_number)
+                        for column_number, cell_data in enumerate(row_data):
+                            self.hold_TableWidget.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(cell_data)))
+        except pyodbc.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'An error occurred: {e}')
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     window = Login()

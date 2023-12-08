@@ -25,7 +25,7 @@
     </property>
     <column>
      <property name="text">
-      <string>RoomID</string>
+      <string>Student_email</string>
      </property>
     </column>
     <column>
@@ -35,32 +35,17 @@
     </column>
     <column>
      <property name="text">
-      <string>Capacity</string>
+      <string>reserved_date</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>Availability</string>
+      <string>start_date</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>Issued by</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Key given</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>New Column</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Return time</string>
+      <string>end_date</string>
      </property>
     </column>
     <column>
@@ -102,7 +87,7 @@
      <x>0</x>
      <y>0</y>
      <width>809</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

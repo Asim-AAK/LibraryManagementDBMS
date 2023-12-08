@@ -17,15 +17,20 @@
    <widget class="QTableWidget" name="booksTableWidget">
     <property name="geometry">
      <rect>
-      <x>40</x>
+      <x>30</x>
       <y>150</y>
-      <width>711</width>
+      <width>741</width>
       <height>261</height>
      </rect>
     </property>
     <column>
      <property name="text">
-      <string>BookID</string>
+      <string>student_email</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>book_ID</string>
      </property>
     </column>
     <column>
@@ -40,22 +45,17 @@
     </column>
     <column>
      <property name="text">
-      <string>Genre</string>
+      <string>returned</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>Copies Available</string>
+      <string>return_date</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>Issued Copies</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Issued By</string>
+      <string>issue_date</string>
      </property>
     </column>
     <column>
@@ -97,7 +97,7 @@
      <x>0</x>
      <y>0</y>
      <width>809</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
